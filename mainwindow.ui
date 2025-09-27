@@ -6,18 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
+    <width>1200</width>
     <height>600</height>
    </rect>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1000</width>
+    <width>1200</width>
     <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>PhotoINF</string>
+  </property>
+  <property name="windowIcon">
+   <iconset theme="face-devilish"/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="originImage">
@@ -69,7 +72,7 @@
      <rect>
       <x>30</x>
       <y>20</y>
-      <width>261</width>
+      <width>201</width>
       <height>51</height>
      </rect>
     </property>
@@ -104,7 +107,7 @@
    <widget class="QPushButton" name="horizMirror">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>1070</x>
       <y>30</y>
       <width>111</width>
       <height>41</height>
@@ -118,7 +121,7 @@ horizontal</string>
    <widget class="QPushButton" name="vertMirror">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>1070</x>
       <y>100</y>
       <width>111</width>
       <height>41</height>
@@ -132,7 +135,7 @@ vertical</string>
    <widget class="QPushButton" name="toGreyscale">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>1070</x>
       <y>170</y>
       <width>111</width>
       <height>31</height>
@@ -145,7 +148,7 @@ vertical</string>
    <widget class="QPushButton" name="quantizerBtn">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>1070</x>
       <y>230</y>
       <width>111</width>
       <height>31</height>
@@ -184,7 +187,7 @@ vertical</string>
    <widget class="QSpinBox" name="numOfShadesSpin">
     <property name="geometry">
      <rect>
-      <x>931</x>
+      <x>1141</x>
       <y>280</y>
       <width>41</width>
       <height>24</height>
@@ -203,7 +206,7 @@ vertical</string>
      <number>1</number>
     </property>
     <property name="maximum">
-     <number>255</number>
+     <number>256</number>
     </property>
     <property name="singleStep">
      <number>1</number>
@@ -218,7 +221,7 @@ vertical</string>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>1070</x>
       <y>280</y>
       <width>71</width>
       <height>20</height>
@@ -244,6 +247,34 @@ vertical</string>
     </property>
     <property name="text">
      <string>Salvar imagem</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>980</x>
+      <y>440</y>
+      <width>201</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="histogramBtn">
+    <property name="geometry">
+     <rect>
+      <x>1070</x>
+      <y>320</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Histograma</string>
     </property>
    </widget>
   </widget>

@@ -10,6 +10,8 @@
 #include <QImage>
 #include <QVector>
 #include <QQueue>
+#include <QtCharts/QChartView>
+
 using namespace std;
 
 Tools tools;
@@ -19,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ui->numOfShadesSpin->setValue(255);
+    ui->numOfShadesSpin->setValue(256);
 }
 
 MainWindow::~MainWindow()
@@ -145,7 +147,7 @@ void MainWindow::on_toGreyscale_clicked()
         // Renderiza a imagem na label da imagem alvo
         int target_w = ui->targetImage->width();
         int target_h = ui->targetImage->height();
-        ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+        ui->targetImage->setPixmap(targetImage.lumPixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
     }
     return;
 }
@@ -169,5 +171,28 @@ void MainWindow::on_numOfShadesSpin_valueChanged(int numOfShades)
 {
     targetImage.numOfShades = numOfShades;
     return;
+}
+
+void MainWindow::on_histogramBtn_clicked()
+{
+    // Fecha janela antiga, se existir.
+    if(histWindow) {
+        histWindow->close();
+        histWindow->deleteLater();
+        histWindow = nullptr;
+    }
+
+    QChartView* histView = tools.lumHistogram(targetImage);
+
+    // Cria nova janela para o histograma.
+    histWindow = new QWidget;
+    histWindow->setWindowTitle("Histograma da Imagem");
+    histWindow->resize(800, 300);
+
+    QVBoxLayout *layout = new QVBoxLayout(histWindow); // layout vertical
+    layout->addWidget(histView);                 // adiciona o gráfico
+    histWindow->setLayout(layout);                     // define layout
+
+    histWindow->show(); // abre a janela separada
 }
 

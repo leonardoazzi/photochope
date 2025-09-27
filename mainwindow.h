@@ -13,7 +13,8 @@ class Image {
 public:
     QString fileName;
     QPixmap pixMap;
-    unsigned int numOfShades = 255;
+    QPixmap lumPixMap;
+    unsigned int numOfShades = 256;
     unsigned int minShade;
     unsigned int maxShade;
 };
@@ -36,10 +37,12 @@ private slots:
     void on_reloadImage_clicked();
     void on_quantizerBtn_clicked();
     void on_numOfShadesSpin_valueChanged(int numOfShades);
-
     void on_saveImage_clicked();
+
+    void on_histogramBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
+    QWidget *histWindow = nullptr;   // janela do histograma
 };
 #endif // MAINWINDOW_H

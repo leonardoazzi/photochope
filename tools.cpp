@@ -8,7 +8,16 @@
 #include <QImage>
 #include <QVector>
 #include <QQueue>
+
+#include <QtCharts/QChartView>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QChart>
+
 #include "mainwindow.h"
+
 using namespace std;
 
 Tools::Tools() {}
@@ -83,7 +92,7 @@ void Tools::greyscale(Image &img){
     unsigned int rows = img.pixMap.height();
 
     // Cria histograma
-    std::array<unsigned int, 256> hist = {0};
+    hist = {0};
 
     // Para acessar os bytes da imagem diretamente
     uchar *data = image.bits();
@@ -117,7 +126,8 @@ void Tools::greyscale(Image &img){
     img.maxShade = maxShade;
 
     // Atualiza mapa de pixels da imagem alvo na memória
-    img.pixMap = QPixmap::fromImage(image);
+    img.lumPixMap = QPixmap::fromImage(image);
+    img.pixMap = img.lumPixMap;
 }
 
 void Tools::quantize(Image &img){
@@ -125,12 +135,12 @@ void Tools::quantize(Image &img){
     Tools::greyscale(img);
 
     // Obtém dados da imagem
-    QImage image = img.pixMap.toImage();
+    QImage image = img.lumPixMap.toImage();
     uchar *data = image.bits();
     int stride = image.bytesPerLine();
 
-    unsigned int cols = img.pixMap.width();
-    unsigned int rows = img.pixMap.height();
+    unsigned int cols = img.lumPixMap.width();
+    unsigned int rows = img.lumPixMap.height();
 
     unsigned int tam_int = img.maxShade - img.minShade + 1;
     unsigned int n = img.numOfShades;
@@ -167,4 +177,47 @@ void Tools::quantize(Image &img){
 
     // Atualiza mapa de pixels da imagem alvo na memória
     img.pixMap = QPixmap::fromImage(image);
+    img.lumPixMap = QPixmap::fromImage(image);
+}
+
+QChartView* Tools::lumHistogram(Image &img) {
+
+    histogramView = new QChartView();
+    histogramView->setRenderHint(QPainter::Antialiasing);
+
+    // Converte para escala de cinza
+    Tools::greyscale(img);
+
+    // Normaliza histograma e atribui ao conjunto de barras do gráfico
+    QBarSet *set0 = new QBarSet("");
+    for (int i = 0; i < 256; i++) {
+        *set0 << static_cast<double>(hist[i]) / img.maxShade;
+    }
+
+    set0->setColor(Qt::white); // barras pretas
+
+    QBarSeries *series = new QBarSeries();
+    series->append(set0);
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->legend()->hide();
+    chart->setBackgroundVisible(false);
+    chart->setMargins(QMargins(0,0,0,0));
+
+    // Configura eixo x (0-255)
+    QBarCategoryAxis *axisX = new QBarCategoryAxis();
+    QStringList categories;
+    for(int i = 0; i < 256; ++i) categories << QString::number(i);
+    axisX->append(categories);
+    axisX->setLabelsVisible(false);
+    axisX->setGridLineVisible(false);
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+
+    // Atualizar chartView existente
+    histogramView->setChart(chart);
+
+    return histogramView;
 }
