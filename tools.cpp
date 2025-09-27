@@ -221,3 +221,56 @@ QChartView* Tools::lumHistogram(Image &img) {
 
     return histogramView;
 }
+
+void Tools::updateBright(int beta, Image &img){
+    // Converte para escala de cinza
+    Tools::greyscale(img);
+
+    QImage image = img.lumPixMap.toImage();
+    unsigned int cols = img.lumPixMap.width();
+    unsigned int rows = img.lumPixMap.height();
+
+    // Para acessar os bytes da imagem diretamente
+    uchar *data = image.bits();
+    int stride = image.bytesPerLine();
+
+    int lumPixel = 0;
+    int newPixel = 0;
+    for (unsigned int i = 0; i < rows; i++) {
+        uchar *row = data + i * stride;
+        for (unsigned int j = 0; j < cols; j++) {
+            // Se a imagem estiver em 32 bits, cada pixel tem 4 bytes (BGRA)
+            uchar b = row[j*4 + 0];
+            uchar g = row[j*4 + 1];
+            uchar r = row[j*4 + 2];
+
+            lumPixel = static_cast<unsigned int>(0.299 * r + 0.587 * g + 0.114 * b);
+            newPixel = lumPixel + beta;
+            newPixel = std::min(std::max(newPixel, 0), 255);
+
+            if (i==1){
+                cout << lumPixel << endl;
+                cout << newPixel << endl;
+            }
+
+            hist[newPixel]++;
+
+            // sobrescreve pixel no formato BGRA
+            row[j*4 + 0] = newPixel; // B
+            row[j*4 + 1] = newPixel; // G
+            row[j*4 + 2] = newPixel; // R
+        }
+    }
+    unsigned int minShade = 0;
+    while (minShade < 256 && hist[minShade] == 0) minShade++;
+    unsigned int maxShade = 255;
+    while (maxShade > 0 && hist[maxShade] == 0) maxShade--;
+
+    // Salva os tons mínimos e máximos da imagem
+    img.minShade = minShade;
+    img.maxShade = maxShade;
+
+    // Atualiza mapa de pixels da imagem alvo na memória
+    img.lumPixMap = QPixmap::fromImage(image);
+    img.pixMap = img.lumPixMap;
+}

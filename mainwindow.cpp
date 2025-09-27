@@ -22,6 +22,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     ui->numOfShadesSpin->setValue(256);
+
+    this->move(0, 0);
 }
 
 MainWindow::~MainWindow()
@@ -193,6 +195,68 @@ void MainWindow::on_histogramBtn_clicked()
     layout->addWidget(histView);                 // adiciona o gráfico
     histWindow->setLayout(layout);                     // define layout
 
-    histWindow->show(); // abre a janela separada
+    // Pega a geometria da janela principal
+    QRect mainGeom = this->geometry();
+
+    // Calcula posição: mesmo x que a MainWindow, y logo abaixo
+    int x = mainGeom.x();
+    int y = mainGeom.y() + mainGeom.height() + 10; // 10 pixels de distância
+
+    histWindow->move(x, y);
+    histWindow->show();
+}
+
+void MainWindow::updateHistogramWindow(){
+    if(histWindow) {
+        // Pega o layout existente
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(histWindow->layout());
+        if(!layout) {
+            layout = new QVBoxLayout(histWindow);
+            histWindow->setLayout(layout);
+        }
+
+        // Remove e deleta o widget antigo
+        while(QLayoutItem* item = layout->takeAt(0)) {
+            if(QWidget* w = item->widget()) {
+                w->hide();
+                w->deleteLater();
+            }
+            delete item;
+        }
+
+        // Cria novo histograma
+        QChartView* histView = tools.lumHistogram(targetImage);
+
+        // Adiciona ao layout
+        layout->addWidget(histView);
+
+        // Exibe a janela (já está aberta, mas refresh visual)
+        histWindow->show();
+    }
+}
+
+void MainWindow::on_brightUpBtn_clicked()
+{
+    tools.updateBright(50, targetImage);
+    // Renderiza a imagem na label da imagem alvo
+
+    int target_w = ui->targetImage->width();
+    int target_h = ui->targetImage->height();
+    ui->targetImage->setPixmap(targetImage.lumPixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+    MainWindow::updateHistogramWindow();
+}
+
+
+void MainWindow::on_brightDownBtn_clicked()
+{
+    tools.updateBright(-50, targetImage);
+    // Renderiza a imagem na label da imagem alvo
+
+    int target_w = ui->targetImage->width();
+    int target_h = ui->targetImage->height();
+    ui->targetImage->setPixmap(targetImage.lumPixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+    MainWindow::updateHistogramWindow();
 }
 

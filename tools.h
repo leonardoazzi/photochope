@@ -12,6 +12,7 @@ public:
     void verticalMirror(Image &image);
     void horizontalMirror(Image &image);
     QChartView* lumHistogram(Image &image);
+    void updateBright(int beta, Image &img);
 
 private:
     QChartView *histogramView = nullptr;

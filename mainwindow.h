@@ -38,8 +38,10 @@ private slots:
     void on_quantizerBtn_clicked();
     void on_numOfShadesSpin_valueChanged(int numOfShades);
     void on_saveImage_clicked();
-
     void on_histogramBtn_clicked();
+    void on_brightUpBtn_clicked();
+    void on_brightDownBtn_clicked();
+    void updateHistogramWindow();
 
 private:
     Ui::MainWindow *ui;
