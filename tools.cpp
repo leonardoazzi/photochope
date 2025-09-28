@@ -127,12 +127,14 @@ void Tools::greyscale(Image &img){
 
     // Atualiza mapa de pixels da imagem alvo na memória
     img.lumPixMap = QPixmap::fromImage(image);
-    img.pixMap = img.lumPixMap;
+    //img.pixMap = img.lumPixMap;
 }
 
 void Tools::quantize(Image &img){
 
-    Tools::greyscale(img);
+    if (img.lumPixMap.isNull()){
+        Tools::greyscale(img);
+    }
 
     // Obtém dados da imagem
     QImage image = img.lumPixMap.toImage();
@@ -219,9 +221,54 @@ QChartView* Tools::lumHistogram(Image &img) {
     return histogramView;
 }
 
-void Tools::updateBright(int beta, Image &img){
-    // Converte para escala de cinza
-    Tools::greyscale(img);
+void Tools::updateBright(int bias, Image &img){
+    //if (img.lumPixMap.isNull()){
+    //    Tools::greyscale(img);
+    //}
+
+    // Converte para RGB32, garante cores
+    QImage image = img.pixMap.toImage();
+
+    unsigned int cols = img.pixMap.width();
+    unsigned int rows = img.pixMap.height();
+
+    // Para acessar os bytes da imagem diretamente
+    uchar *data = image.bits();
+    int stride = image.bytesPerLine();
+
+    hist.fill(0); // zera histograma
+
+    for (unsigned int i = 0; i < rows; i++) {
+        uchar* row = data + i * stride;
+        for (unsigned int j = 0; j < cols; j++) {
+            int b = static_cast<int>(row[j*4 + 0]) + bias;
+            int g = static_cast<int>(row[j*4 + 1]) + bias;
+            int r = static_cast<int>(row[j*4 + 2]) + bias;
+
+            // Saturação 0..255
+            unsigned char final_b = static_cast<uchar>(std::min(std::max(b, 0), 255));
+            unsigned char final_g = static_cast<uchar>(std::min(std::max(g, 0), 255));
+            unsigned char final_r = static_cast<uchar>(std::min(std::max(r, 0), 255));
+
+            // Sobrescreve pixel
+            row[j*4 + 0] = final_b;
+            row[j*4 + 1] = final_g;
+            row[j*4 + 2] = final_r;
+
+            // Histograma por luminância usando os valores finais
+            int lum = static_cast<int>(0.299*final_r + 0.587*final_g + 0.114*final_b);
+            hist[lum]++;
+        }
+    }
+
+    // Atualiza mapa de pixels da imagem alvo na memória
+    img.pixMap = QPixmap::fromImage(image);
+}
+
+void Tools::updateContrast(double gain, Image &img){
+    if (img.lumPixMap.isNull()){
+        Tools::greyscale(img);
+    }
 
     QImage image = img.lumPixMap.toImage();
     unsigned int cols = img.lumPixMap.width();
@@ -231,8 +278,9 @@ void Tools::updateBright(int beta, Image &img){
     uchar *data = image.bits();
     int stride = image.bytesPerLine();
 
-    int lumPixel = 0;
-    int newPixel = 0;
+    double lumPixel = 0.0;
+    double newPixel = 0;
+
     for (unsigned int i = 0; i < rows; i++) {
         uchar *row = data + i * stride;
         for (unsigned int j = 0; j < cols; j++) {
@@ -241,16 +289,11 @@ void Tools::updateBright(int beta, Image &img){
             uchar g = row[j*4 + 1];
             uchar r = row[j*4 + 2];
 
-            lumPixel = static_cast<unsigned int>(0.299 * r + 0.587 * g + 0.114 * b);
-            newPixel = lumPixel + beta;
-            newPixel = std::min(std::max(newPixel, 0), 255);
+            lumPixel = static_cast<float>(0.299 * r + 0.587 * g + 0.114 * b);
+            newPixel = gain * lumPixel;
+            newPixel = std::min(std::max(newPixel, 0.0), 255.0);
 
-            if (i==1){
-                cout << lumPixel << endl;
-                cout << newPixel << endl;
-            }
-
-            hist[newPixel]++;
+            hist[static_cast<unsigned int>(newPixel)]++;
 
             // sobrescreve pixel no formato BGRA
             row[j*4 + 0] = newPixel; // B
@@ -270,4 +313,43 @@ void Tools::updateBright(int beta, Image &img){
     // Atualiza mapa de pixels da imagem alvo na memória
     img.lumPixMap = QPixmap::fromImage(image);
     img.pixMap = img.lumPixMap;
+}
+
+void Tools::updateNegative(Image &img){
+    QImage image = img.pixMap.toImage();
+
+    unsigned int cols = img.pixMap.width();
+    unsigned int rows = img.pixMap.height();
+
+    // Para acessar os bytes da imagem diretamente
+    uchar *data = image.bits();
+    int stride = image.bytesPerLine();
+
+    hist.fill(0); // zera histograma
+
+    for (unsigned int i = 0; i < rows; i++) {
+        uchar* row = data + i * stride;
+        for (unsigned int j = 0; j < cols; j++) {
+            int b = 255 - static_cast<int>(row[j*4 + 0]);
+            int g = 255 - static_cast<int>(row[j*4 + 1]);
+            int r = 255 - static_cast<int>(row[j*4 + 2]);
+
+            // Saturação 0..255
+            unsigned char final_b = static_cast<uchar>(std::min(std::max(b, 0), 255));
+            unsigned char final_g = static_cast<uchar>(std::min(std::max(g, 0), 255));
+            unsigned char final_r = static_cast<uchar>(std::min(std::max(r, 0), 255));
+
+            // Sobrescreve pixel
+            row[j*4 + 0] = final_b;
+            row[j*4 + 1] = final_g;
+            row[j*4 + 2] = final_r;
+
+            // Histograma por luminância usando os valores finais
+            int lum = static_cast<int>(0.299*final_r + 0.587*final_g + 0.114*final_b);
+            hist[lum]++;
+        }
+    }
+
+    // Atualiza mapa de pixels da imagem alvo na memória
+    img.pixMap = QPixmap::fromImage(image);
 }

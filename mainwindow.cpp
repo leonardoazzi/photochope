@@ -59,9 +59,9 @@ void MainWindow::createHistogramWindow(){
 
 void MainWindow::updateHistogramWindow(){
     // Se a luminância ainda não tiver sido computada
-    if (targetImage.lumPixMap.isNull()){
-        tools.greyscale(targetImage);
-    }
+    //if (targetImage.lumPixMap.isNull()){
+    //    tools.greyscale(targetImage);
+    //}
 
     if(histWindow) {
         // Pega o layout existente
@@ -263,11 +263,10 @@ void MainWindow::on_histogramBtn_clicked()
 void MainWindow::on_brightUpBtn_clicked()
 {
     tools.updateBright(50, targetImage);
-    // Renderiza a imagem na label da imagem alvo
 
     int target_w = ui->targetImage->width();
     int target_h = ui->targetImage->height();
-    ui->targetImage->setPixmap(targetImage.lumPixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+    ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
 
     MainWindow::updateHistogramWindow();
 }
@@ -276,11 +275,46 @@ void MainWindow::on_brightUpBtn_clicked()
 void MainWindow::on_brightDownBtn_clicked()
 {
     tools.updateBright(-50, targetImage);
-    // Renderiza a imagem na label da imagem alvo
 
     int target_w = ui->targetImage->width();
     int target_h = ui->targetImage->height();
-    ui->targetImage->setPixmap(targetImage.lumPixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+    ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+    MainWindow::updateHistogramWindow();
+}
+
+
+void MainWindow::on_contrastUpBtn_clicked()
+{
+    tools.updateContrast(1.5, targetImage);
+
+    int target_w = ui->targetImage->width();
+    int target_h = ui->targetImage->height();
+    ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+    MainWindow::updateHistogramWindow();
+}
+
+
+void MainWindow::on_contrastDownBtn_clicked()
+{
+    tools.updateContrast(0.75, targetImage);
+
+    int target_w = ui->targetImage->width();
+    int target_h = ui->targetImage->height();
+    ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+    MainWindow::updateHistogramWindow();
+}
+
+
+void MainWindow::on_negativeBtn_clicked()
+{
+    tools.updateNegative(targetImage);
+
+    int target_w = ui->targetImage->width();
+    int target_h = ui->targetImage->height();
+    ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
 
     MainWindow::updateHistogramWindow();
 }

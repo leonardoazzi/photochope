@@ -43,6 +43,10 @@ private slots:
     void on_brightDownBtn_clicked();
     void createHistogramWindow();
     void updateHistogramWindow();
+    void on_contrastUpBtn_clicked();
+    void on_contrastDownBtn_clicked();
+
+    void on_negativeBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
