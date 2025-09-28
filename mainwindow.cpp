@@ -31,6 +31,66 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::createHistogramWindow(){
+    // Se a luminância ainda não tiver sido computada
+    if (targetImage.lumPixMap.isNull()){
+        tools.greyscale(targetImage);
+    }
+
+    QChartView* histView = tools.lumHistogram(targetImage);
+
+    // Cria nova janela para o histograma.
+    histWindow = new QWidget;
+    histWindow->setWindowTitle("Histograma da Imagem");
+    histWindow->resize(800, 300);
+
+    // Faz com que seja destruída ao fechar
+    histWindow->setAttribute(Qt::WA_DeleteOnClose);
+
+    // Limpa o ponteiro quando a janela for destruída
+    connect(histWindow, &QWidget::destroyed, [this]() {
+        histWindow = nullptr;
+    });
+
+    QVBoxLayout *layout = new QVBoxLayout(histWindow);  // layout vertical
+    layout->addWidget(histView);                        // adiciona o gráfico
+    histWindow->setLayout(layout);                      // define layout
+}
+
+void MainWindow::updateHistogramWindow(){
+    // Se a luminância ainda não tiver sido computada
+    if (targetImage.lumPixMap.isNull()){
+        tools.greyscale(targetImage);
+    }
+
+    if(histWindow) {
+        // Pega o layout existente
+        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(histWindow->layout());
+        if(!layout) {
+            layout = new QVBoxLayout(histWindow);
+            histWindow->setLayout(layout);
+        }
+
+        // Remove e deleta o widget antigo
+        while(QLayoutItem* item = layout->takeAt(0)) {
+            if(QWidget* w = item->widget()) {
+                w->hide();
+                w->deleteLater();
+            }
+            delete item;
+        }
+
+        // Cria novo histograma
+        QChartView* histView = tools.lumHistogram(targetImage);
+
+        // Adiciona ao layout
+        layout->addWidget(histView);
+
+        // Exibe a janela (já está aberta, mas refresh visual)
+        histWindow->show();
+    }
+}
+
 void MainWindow::on_loadImage_clicked()
 {
     loadedImage.fileName = QFileDialog::getOpenFileName(this, tr("Abrir arquivo"), QDir::homePath(), tr("Images (*.png *.jpg)"));
@@ -57,8 +117,11 @@ void MainWindow::on_loadImage_clicked()
         // Atribui informações de dimensão da imagem à label
         unsigned int cols = targetImage.pixMap.width();
         unsigned int rows = targetImage.pixMap.height();
+
         ui->imgDimensionsLbl->setText("Resolução: " + QString::number(cols) + "x" + QString::number(rows));
 
+        targetImage.lumPixMap = QPixmap(); // "zera" o pixmap
+        MainWindow::updateHistogramWindow();
     }
     return;
 }
@@ -78,6 +141,9 @@ void MainWindow::on_reloadImage_clicked()
 
         // Atribui o mapa de pixels à label
         ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
+
+        targetImage.lumPixMap = QPixmap(); // "zera" o pixmap
+        MainWindow::updateHistogramWindow();
     }
     return;
 }
@@ -164,6 +230,7 @@ void MainWindow::on_quantizerBtn_clicked()
         int target_h = ui->targetImage->height();
         ui->targetImage->setPixmap(targetImage.pixMap.scaled(target_w, target_h, Qt::KeepAspectRatio));
 
+        MainWindow::updateHistogramWindow();
     }
     return;
 }
@@ -177,60 +244,18 @@ void MainWindow::on_numOfShadesSpin_valueChanged(int numOfShades)
 
 void MainWindow::on_histogramBtn_clicked()
 {
-    // Fecha janela antiga, se existir.
-    if(histWindow) {
-        histWindow->close();
-        histWindow->deleteLater();
-        histWindow = nullptr;
-    }
+    // Se já existir a janela, não cria uma nova.
+    if(!histWindow) {
+        MainWindow::createHistogramWindow();
 
-    QChartView* histView = tools.lumHistogram(targetImage);
+        // Pega a geometria da janela principal
+        QRect mainGeom = this->geometry();
 
-    // Cria nova janela para o histograma.
-    histWindow = new QWidget;
-    histWindow->setWindowTitle("Histograma da Imagem");
-    histWindow->resize(800, 300);
+        // Calcula posição: mesmo x que a MainWindow, y logo abaixo
+        int x = mainGeom.x();
+        int y = mainGeom.y() + mainGeom.height() + 10; // 10 pixels de distância
 
-    QVBoxLayout *layout = new QVBoxLayout(histWindow); // layout vertical
-    layout->addWidget(histView);                 // adiciona o gráfico
-    histWindow->setLayout(layout);                     // define layout
-
-    // Pega a geometria da janela principal
-    QRect mainGeom = this->geometry();
-
-    // Calcula posição: mesmo x que a MainWindow, y logo abaixo
-    int x = mainGeom.x();
-    int y = mainGeom.y() + mainGeom.height() + 10; // 10 pixels de distância
-
-    histWindow->move(x, y);
-    histWindow->show();
-}
-
-void MainWindow::updateHistogramWindow(){
-    if(histWindow) {
-        // Pega o layout existente
-        QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(histWindow->layout());
-        if(!layout) {
-            layout = new QVBoxLayout(histWindow);
-            histWindow->setLayout(layout);
-        }
-
-        // Remove e deleta o widget antigo
-        while(QLayoutItem* item = layout->takeAt(0)) {
-            if(QWidget* w = item->widget()) {
-                w->hide();
-                w->deleteLater();
-            }
-            delete item;
-        }
-
-        // Cria novo histograma
-        QChartView* histView = tools.lumHistogram(targetImage);
-
-        // Adiciona ao layout
-        layout->addWidget(histView);
-
-        // Exibe a janela (já está aberta, mas refresh visual)
+        histWindow->move(x, y);
         histWindow->show();
     }
 }

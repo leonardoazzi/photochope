@@ -185,9 +185,6 @@ QChartView* Tools::lumHistogram(Image &img) {
     histogramView = new QChartView();
     histogramView->setRenderHint(QPainter::Antialiasing);
 
-    // Converte para escala de cinza
-    Tools::greyscale(img);
-
     // Normaliza histograma e atribui ao conjunto de barras do gráfico
     QBarSet *set0 = new QBarSet("");
     for (int i = 0; i < 256; i++) {

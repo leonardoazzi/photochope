@@ -41,6 +41,7 @@ private slots:
     void on_histogramBtn_clicked();
     void on_brightUpBtn_clicked();
     void on_brightDownBtn_clicked();
+    void createHistogramWindow();
     void updateHistogramWindow();
 
 private:
